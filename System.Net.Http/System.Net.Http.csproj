@@ -1,6 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>Copyright 2017</Copyright>
+    <PackageLicenseUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</PackageProjectUrl>
+    <PackageIconUrl>https://mobileimages.lowes.com/product/converted/054732/054732810314.jpg</PackageIconUrl>
+    <RepositoryUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</RepositoryUrl>
+    <PackageTags>asp aspnet net core http httpclient extensions</PackageTags>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <Authors>Bolorunduro Winner-Timothy</Authors>
+    <Description>A library that adds the Json verb methods to the  httpclient</Description>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <AssemblyName>AspNetCore.Http.Extensions</AssemblyName>
+    <RootNamespace>AspNetCore.Http.Extensions</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />

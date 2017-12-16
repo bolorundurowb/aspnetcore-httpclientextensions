@@ -1,8 +1,9 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace System.Net.Http
+namespace AspNetCore.Http.Extensions
 {
     public static class HttpClientExtensions
     {
