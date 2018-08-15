@@ -4,7 +4,7 @@
     <Version>1.0.1</Version>
     <PackageLicenseUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</PackageProjectUrl>
-    <PackageIconUrl>https://mobileimages.lowes.com/product/converted/054732/054732810314.jpg</PackageIconUrl>
+    <PackageIconUrl>https://upload.wikimedia.org/wikipedia/commons/0/0e/Microsoft_.NET_logo.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</RepositoryUrl>
     <PackageTags>asp aspnet net core http httpclient extensions</PackageTags>
     <PackageReleaseNotes>Add support for lower net standar versions</PackageReleaseNotes>
