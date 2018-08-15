@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <Copyright>Copyright 2017</Copyright>
     <PackageLicenseUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</PackageProjectUrl>
@@ -13,6 +12,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyName>AspNetCore.Http.Extensions</AssemblyName>
     <RootNamespace>AspNetCore.Http.Extensions</RootNamespace>
+    <TargetFrameworks>netstandard1.1;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
