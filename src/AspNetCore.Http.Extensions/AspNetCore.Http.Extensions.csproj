@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Copyright>Copyright 2023</Copyright>
+    <Copyright>© 2017-2026, Bolorunduro Winner-Timothy. All Rights reserved.</Copyright>
     <Version>2.0.0</Version>
     <PackageLicenseUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</PackageProjectUrl>
@@ -8,13 +8,13 @@
     <RepositoryUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</RepositoryUrl>
     <PackageTags>asp aspnet net core http httpclient extensions</PackageTags>
     <PackageReleaseNotes>Use System.Text.Json</PackageReleaseNotes>
-    <Authors>Bolorunduro Winner-Timothy</Authors>
+    <Authors>Winner-Timothy Bolorunduro</Authors>
     <Description>A library that adds the Json verb methods to the  httpclient</Description>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyName>AspNetCore.Http.Extensions</AssemblyName>
     <RootNamespace>AspNetCore.Http.Extensions</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>11</LangVersion>
+    <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
