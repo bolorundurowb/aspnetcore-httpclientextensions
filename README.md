@@ -6,7 +6,7 @@ Small **System.Text.Json** helpers for **`HttpClient`** and **`HttpContent`**: s
 
 ## When to use this library
 
-This package is aimed **mainly at runtimes and workloads from before the “one .NET” era**—especially **.NET Core 3.1 and earlier**, **.NET Framework**, **Mono**, **Xamarin**, **Unity**, and other **non-unified .NET** environments where you want a **lightweight `HttpClient` + JSON** story without pulling in a large stack.
+This package is aimed **mainly at runtimes and workloads from before the “one .NET” era** especially **.NET Core 3.1 and earlier**, **.NET Framework**, **Mono**, **Xamarin**, **Unity**, and other **non-unified .NET** environments where you want a **lightweight `HttpClient` + JSON** story without pulling in a large stack.
 
 Starting with **.NET 5**, the shared runtime ships **[`System.Net.Http.Json`](https://learn.microsoft.com/dotnet/api/system.net.http.json)** (`GetFromJsonAsync`, `PostAsJsonAsync`, `PutAsJsonAsync`, `ReadFromJsonAsync`, and related types). **If you target .NET 5 or later**, prefer that built-in API (or the standalone `System.Net.Http.Json` package where applicable) unless you have a concrete reason to standardize on this library.
 
