@@ -1,5 +1,7 @@
 # aspnetcore-httpclientextensions
 
+[![Build, Test & Coverage](https://github.com/bolorundurowb/aspnetcore-httpclientextensions/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/bolorundurowb/aspnetcore-httpclientextensions/actions/workflows/build-and-test.yml) [![codecov](https://codecov.io/gh/bolorundurowb/aspnetcore-httpclientextensions/graph/badge.svg?token=39Y5TP2LIL)](https://codecov.io/gh/bolorundurowb/aspnetcore-httpclientextensions)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) ![NuGet Version](https://img.shields.io/nuget/v/AspNetCore.Http.Extensions)
+
 Small **System.Text.Json** helpers for **`HttpClient`** and **`HttpContent`**: send JSON with POST, PUT, or PATCH, deserialize JSON from responses or arbitrary content, with optional **`JsonSerializerOptions`** and **`CancellationToken`** support.
 
 **Target framework:** [.NET Standard 2.0](https://learn.microsoft.com/dotnet/standard/net-standard) (broad compatibility across .NET Framework 4.6.1+, .NET Core 2.0+, Mono, Xamarin, Unity, and modern .NET).
