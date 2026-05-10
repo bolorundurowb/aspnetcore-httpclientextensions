@@ -232,8 +232,12 @@ jobs:
 
       - name: Report skipped release (tag exists)
         if: steps.tag_check.outputs.exists == 'true'
-        run: echo "Release skipped: tag ${{ steps.meta.outputs.version }} already exists."
+        shell: bash
+        run: |
+          echo "Release skipped: tag ${{ steps.meta.outputs.version }} already exists."
 
       - name: Report skipped release (race)
         if: steps.tag_recheck.outputs.abort == 'true'
-        run: echo "Release skipped: tag appeared after build (concurrent release)."
+        shell: bash
+        run: |
+          echo "Release skipped: tag appeared after build (concurrent release)."
