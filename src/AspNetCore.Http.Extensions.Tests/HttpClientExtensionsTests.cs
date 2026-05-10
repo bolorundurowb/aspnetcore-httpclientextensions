@@ -1,77 +1,67 @@
-using FluentAssertions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 
 namespace AspNetCore.Http.Extensions.Tests;
 
 [TestFixture]
-public class HttpClientExtensionsTests
+public sealed class HttpClientExtensionsTests
 {
     [Test]
-    public async Task PostAsJsonAsync_ShouldSerializeDataAndSetContentTypeHeader()
+    public async Task PostAsJsonAsync_WhenHandlerReturnsContent_ReturnsResponseBody()
     {
-        // Arrange
-        const string expectedUrl = "https://example.com/api";
-        var messageHandler = new MockHttpMessageHandler();
+        const string url = "https://example.com/api";
+        var handler = new MockHttpMessageHandler();
         var response = new HttpResponseMessage();
-        var expectedData = JsonSerializer.Serialize(new TestData { Id = 1, Name = "Test" });
-        response.Content = new StringContent(expectedData);
-        messageHandler.When(expectedUrl).Respond(() => Task.FromResult(response));
+        var jsonBody = JsonSerializer.Serialize(new SamplePayload { Id = 1, Name = "Test" });
+        response.Content = new StringContent(jsonBody);
+        handler.When(url).Respond(() => Task.FromResult(response));
+        var client = new HttpClient(handler);
 
-        var httpClient = new HttpClient(messageHandler);
+        var result = await client.PostAsJsonAsync(url, jsonBody);
 
-        // Act
-        var result = await httpClient.PostAsJsonAsync(expectedUrl, expectedData);
-
-        // Assert
-        var data = await result.Content.ReadAsStringAsync();
-
-        data.Should().Be(expectedData);
+        var body = await result.Content.ReadAsStringAsync();
+        body.Should().Be(jsonBody);
     }
 
     [Test]
-    public async Task PutAsJsonAsync_ShouldSerializeDataAndSetContentTypeHeader()
+    public async Task PutAsJsonAsync_WhenHandlerReturnsContent_ReturnsResponseBody()
     {
-        // Arrange
-        const string expectedUrl = "https://example.com/api";
-        var messageHandler = new MockHttpMessageHandler();
+        const string url = "https://example.com/api";
+        var handler = new MockHttpMessageHandler();
         var response = new HttpResponseMessage();
-        var expectedData = JsonSerializer.Serialize(new TestData { Id = 1, Name = "Test" });
-        response.Content = new StringContent(expectedData);
-        messageHandler.When(expectedUrl).Respond(() => Task.FromResult(response));
+        var jsonBody = JsonSerializer.Serialize(new SamplePayload { Id = 1, Name = "Test" });
+        response.Content = new StringContent(jsonBody);
+        handler.When(url).Respond(() => Task.FromResult(response));
+        var client = new HttpClient(handler);
 
-        var httpClient = new HttpClient(messageHandler);
+        var result = await client.PutAsJsonAsync(url, jsonBody);
 
-        // Act
-        var result = await httpClient.PutAsJsonAsync(expectedUrl, expectedData);
-
-        // Assert
-        var data = await result.Content.ReadAsStringAsync();
-
-        data.Should().Be(expectedData);
+        var body = await result.Content.ReadAsStringAsync();
+        body.Should().Be(jsonBody);
     }
 
     [Test]
-    public async Task ReadAsJsonAsync_ShouldDeserializeContentData()
+    public async Task ReadAsJsonAsync_WhenContentIsJson_ReturnsDeserializedObject()
     {
-        // Arrange
-        var expectedData = new TestData { Id = 1, Name = "Test" };
-        var content = new StringContent(JsonSerializer.Serialize(expectedData), Encoding.UTF8, "application/json");
+        var expected = new SamplePayload { Id = 1, Name = "Test" };
+        var content = new StringContent(
+            JsonSerializer.Serialize(expected),
+            Encoding.UTF8,
+            "application/json");
 
-        // Act
-        var result = await content.ReadAsJsonAsync<TestData>();
+        var result = await content.ReadAsJsonAsync<SamplePayload>();
 
-        // Assert
-        result.Should().BeEquivalentTo(expectedData);
+        result.Should().BeEquivalentTo(expected);
     }
-}
 
-public class TestData
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
+    private sealed class SamplePayload
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+    }
 }

@@ -15,7 +15,7 @@ public static class HttpClientExtensions
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         return httpClient.PostAsync(url, content);
     }
-        
+
     public static Task<HttpResponseMessage> PutAsJsonAsync<T>(
         this HttpClient httpClient, string url, T data)
     {
