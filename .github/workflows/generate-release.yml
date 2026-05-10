@@ -1,0 +1,239 @@
+name: Generate Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: generate-release-master
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate-release:
+    name: Generate Release
+    runs-on: ubuntu-latest
+    # workflow_dispatch can target any branch; only run on master
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.x"
+
+      - name: Resolve packable project and version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          echo "::group::Discovering packable project"
+          pack_proj=""
+          # Prefer an explicit pack/library project when multiple exist
+          while IFS= read -r -d '' proj; do
+            case "$proj" in *Tests*|*tests*) continue ;; esac
+            if grep -qiE '<(GeneratePackageOnBuild|IsPackable)>\s*true\s*</' "$proj" 2>/dev/null; then
+              pack_proj="$proj"
+              break
+            fi
+          done < <(find src -name "*.csproj" -print0 2>/dev/null | sort -z || true)
+
+          if [[ -z "$pack_proj" ]]; then
+            while IFS= read -r -d '' proj; do
+              case "$proj" in *Tests*|*tests*) continue ;; esac
+              pack_proj="$proj"
+              break
+            done < <(find src -name "*.csproj" -print0 2>/dev/null | sort -z || true)
+          fi
+
+          if [[ -z "$pack_proj" ]]; then
+            echo "::error::No non-test .csproj found under src/. Add a library project or adjust paths."
+            exit 1
+          fi
+
+          echo "Pack project: $pack_proj"
+          echo "pack_project=$pack_proj" >> "$GITHUB_OUTPUT"
+          echo "::endgroup::"
+
+          echo "::group::Evaluating Version via MSBuild"
+          ver_raw="$(dotnet msbuild "$pack_proj" -getProperty:Version -nologo)"
+          ver="$(printf '%s' "$ver_raw" | tr -d '\r' | awk 'NF {print; exit}')"
+          ver="$(printf '%s' "$ver" | xargs)"
+
+          if [[ -z "$ver" ]]; then
+            echo "::error::Version is empty after evaluating $pack_proj (check <Version> or Directory.Build.props)."
+            exit 1
+          fi
+
+          # NuGet / SemVer 2.0-style version (core + optional prerelease); rejects wild whitespace or multi-line junk
+          if [[ ! "$ver" =~ ^[0-9A-Za-z.-]+$ ]]; then
+            echo "::error::Version contains invalid characters: ${ver@Q}"
+            exit 1
+          fi
+          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version is not in a supported form (expected Major.Minor.Patch with optional prerelease): ${ver@Q}"
+            exit 1
+          fi
+
+          echo "Resolved version: $ver"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "::endgroup::"
+
+      - name: Check if release tag already exists
+        id: tag_check
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force origin
+
+          if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists locally; skipping release."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if remote_refs="$(git ls-remote --tags origin "refs/tags/${VERSION}" 2>/dev/null)" && [[ -n "$remote_refs" ]]; then
+            echo "Tag ${VERSION} already exists on origin; skipping release."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Tag ${VERSION} not found; will build and publish."
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+
+      - name: Build and pack (Release)
+        id: pack
+        if: steps.tag_check.outputs.exists != 'true'
+        shell: bash
+        env:
+          PACK_PROJECT: ${{ steps.meta.outputs.pack_project }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          dotnet build "$PACK_PROJECT" --configuration Release
+          dotnet pack "$PACK_PROJECT" --configuration Release --output artifacts --no-build
+
+          shopt -s nullglob
+          nupkgs=(artifacts/*.nupkg)
+          if [[ ${#nupkgs[@]} -eq 0 ]]; then
+            echo "::error::No .nupkg produced in artifacts/ after pack."
+            ls -la artifacts || true
+            exit 1
+          fi
+
+      - name: Re-check tag (avoid duplicate releases)
+        id: tag_recheck
+        if: steps.tag_check.outputs.exists != 'true' && steps.pack.outcome == 'success'
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force origin
+          remote_refs="$(git ls-remote --tags origin "refs/tags/${VERSION}" 2>/dev/null || true)"
+          if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null 2>&1 || [[ -n "$remote_refs" ]]; then
+            echo "Tag ${VERSION} appeared after build; aborting release to avoid duplicates."
+            echo "abort=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "abort=false" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release notes
+        id: notes
+        if: steps.tag_check.outputs.exists != 'true' && steps.pack.outcome == 'success' && steps.tag_recheck.outcome == 'success' && steps.tag_recheck.outputs.abort == 'false'
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes_file="${RUNNER_TEMP}/release-notes.md"
+          api_ok=false
+
+          if gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/releases/generate-notes" \
+            -f "tag_name=${VERSION}" \
+            -f "target_commitish=${{ github.sha }}" \
+            --jq .body > "${notes_file}.raw" 2>/tmp/gh-notes.err; then
+            if [[ -s "${notes_file}.raw" ]]; then
+              mv "${notes_file}.raw" "$notes_file"
+              api_ok=true
+              echo "Using GitHub-generated release notes."
+            fi
+          fi
+
+          if [[ "$api_ok" != true ]]; then
+            echo "GitHub release-notes API unavailable or empty; falling back to commit subjects."
+            {
+              echo "## Changes"
+              echo
+              prev="$(git tag --sort=-v:refname | grep -vx "${VERSION}" | head -1 || true)"
+              if [[ -n "$prev" ]] && git rev-parse -q --verify "$prev^{}" >/dev/null 2>&1; then
+                git log "${prev}..${{ github.sha }}" --pretty=format:'- %s'
+              else
+                git log --max-count=200 "${{ github.sha }}" --pretty=format:'- %s'
+              fi
+              echo
+            } > "$notes_file"
+          fi
+
+          echo "notes_file=$notes_file" >> "$GITHUB_OUTPUT"
+
+      - name: Determine pre-release flag
+        id: flags
+        if: steps.tag_check.outputs.exists != 'true' && steps.pack.outcome == 'success' && steps.tag_recheck.outcome == 'success' && steps.tag_recheck.outputs.abort == 'false'
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          ver_lc="$(printf '%s' "$VERSION" | tr '[:upper:]' '[:lower:]')"
+          pre=false
+          case "$ver_lc" in *-alpha*|*-beta*) pre=true ;; esac
+          echo "prerelease=$pre" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release and tag
+        if: steps.tag_check.outputs.exists != 'true' && steps.pack.outcome == 'success' && steps.tag_recheck.outcome == 'success' && steps.tag_recheck.outputs.abort == 'false'
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          NOTES_FILE: ${{ steps.notes.outputs.notes_file }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          prerelease_args=()
+          if [[ "${{ steps.flags.outputs.prerelease }}" == "true" ]]; then
+            prerelease_args=(--prerelease)
+          fi
+
+          shopt -s nullglob
+          mapfile -t assets < <(find artifacts -maxdepth 1 -type f -name "*.nupkg" | sort)
+
+          gh release create "${VERSION}" \
+            --target "${{ github.sha }}" \
+            --title "Release ${VERSION}" \
+            --notes-file "${NOTES_FILE}" \
+            "${prerelease_args[@]}" \
+            "${assets[@]}"
+
+      - name: Report skipped release (tag exists)
+        if: steps.tag_check.outputs.exists == 'true'
+        run: echo "Release skipped: tag ${{ steps.meta.outputs.version }} already exists."
+
+      - name: Report skipped release (race)
+        if: steps.tag_recheck.outputs.abort == 'true'
+        run: echo "Release skipped: tag appeared after build (concurrent release)."
