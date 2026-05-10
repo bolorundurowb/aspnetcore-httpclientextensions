@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AspNetCore.Http.Extensions.Tests/AspNetCore.Http.Extensions.Tests.csproj" />
+  <Project Path="AspNetCore.Http.Extensions/AspNetCore.Http.Extensions.csproj" />
+</Solution>

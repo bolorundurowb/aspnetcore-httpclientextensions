@@ -1,28 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Copyright>Copyright 2023</Copyright>
-    <Version>2.0.0</Version>
+    <Copyright>© 2017-2026, Bolorunduro Winner-Timothy. All Rights reserved.</Copyright>
+    <Version>2.1.0</Version>
     <PackageLicenseUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</PackageProjectUrl>
     <PackageIconUrl>https://upload.wikimedia.org/wikipedia/commons/0/0e/Microsoft_.NET_logo.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/bolorundurowb/aspnetcore-httpclientextensions/</RepositoryUrl>
-    <PackageTags>asp aspnet net core http httpclient extensions</PackageTags>
-    <PackageReleaseNotes>Use System.Text.Json</PackageReleaseNotes>
-    <Authors>Bolorunduro Winner-Timothy</Authors>
+    <PackageTags>aspnetcore dotnet csharp httpclient json extensions rest-client http system-text-json nuget</PackageTags>
+    <PackageReleaseNotes>- Add CancellationToken support.
+- Add JsonSerializerOptions to all extension methods. 
+- Add GetFromJsonAsync, PatchAsJsonAsync extension methods.
+- Add stream-based JSON deserialization via ReadAsJsonAsync for large bodies.
+- Improve the XML documentation included in the package.</PackageReleaseNotes>
+    <Authors>Winner-Timothy Bolorunduro</Authors>
     <Description>A library that adds the Json verb methods to the  httpclient</Description>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyName>AspNetCore.Http.Extensions</AssemblyName>
     <RootNamespace>AspNetCore.Http.Extensions</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>11</LangVersion>
+    <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.3" />
+    <PackageReference Include="System.Text.Json" Version="10.0.7" />
   </ItemGroup>
 </Project>
